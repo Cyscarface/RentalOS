@@ -1,0 +1,43 @@
+# ── Laravel / PHP ────────────────────────────────────────
+/vendor/
+/node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Storage & Cache
+/storage/*.key
+/public/storage
+/public/hot
+
+# Compiled assets
+/public/build/
+
+# Dev tools
+.phpunit.result.cache
+.phpunit.cache/
+Homestead.json
+Homestead.yaml
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SQLite database (dev-only)
+/database/*.sqlite
+/database/*.sqlite-shm
+/database/*.sqlite-wal
+
+# Logs
+/storage/logs/*.log

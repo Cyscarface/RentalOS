@@ -1,0 +1,23 @@
+# ── Dependencies ─────────────────────────────────────────
+node_modules/
+
+# ── Build output ─────────────────────────────────────────
+dist/
+dist-ssr/
+
+# ── Environment ───────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Vite / TypeScript ─────────────────────────────────────
+*.local
+.vite/
+
+# ── IDE / OS ─────────────────────────────────────────────
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.suo
+*.sw?

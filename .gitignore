@@ -1,0 +1,9 @@
+# ── Project root ignores ──────────────────────────────────
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Antigravity AI brain artifacts (local only)
+.gemini/
