@@ -28,6 +28,11 @@ class User extends Authenticatable
         'otp',
         'otp_expires_at',
         'is_suspended',
+        'avatar',
+        'bio',
+        'preferences',
+        'google_id',
+        'avatar_url',
     ];
 
     protected $hidden = [
@@ -43,6 +48,7 @@ class User extends Authenticatable
             'otp_expires_at'    => 'datetime',
             'password'          => 'hashed',
             'is_suspended'      => 'boolean',
+            'preferences'       => 'array',
         ];
     }
 
@@ -129,5 +135,11 @@ class User extends Authenticatable
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class, 'user_id');
+    }
+
+    /** Property pages this tenant has viewed */
+    public function propertyViews(): HasMany
+    {
+        return $this->hasMany(PropertyView::class, 'tenant_id');
     }
 }

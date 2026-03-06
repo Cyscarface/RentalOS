@@ -18,8 +18,13 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Test Tenant',
+            'email' => 'tenant@example.com',
+            'role' => User::ROLE_TENANT,
+        ]);
+
+        $this->call([
+            PropertySeeder::class,
         ]);
     }
 }

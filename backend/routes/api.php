@@ -1,14 +1,18 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\LandlordProfileController;
+use App\Http\Controllers\ProviderProfileController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RentPaymentController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\TenantProfileController;
 use Illuminate\Support\Facades\Route;
 
 // -------------------------------------------------------
@@ -29,9 +33,16 @@ Route::get('/reviews/provider/{providerId}', [ReviewController::class, 'provider
 // Auth (public) — rate limited: 10 attempts per minute per IP
 // -------------------------------------------------------
 Route::prefix('auth')->middleware('throttle:10,1')->group(function () {
-    Route::post('/register',    [AuthController::class, 'register']);
-    Route::post('/login',       [AuthController::class, 'login']);
-    Route::post('/verify-otp',  [AuthController::class, 'verifyOtp']);
+    Route::post('/register',        [AuthController::class, 'register']);
+    Route::post('/login',           [AuthController::class, 'login']);
+    Route::post('/verify-otp',      [AuthController::class, 'verifyOtp']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
+    
+    // Google OAuth
+    Route::get('/google/redirect',       [AuthController::class, 'googleRedirect']);
+    Route::post('/google/callback',      [AuthController::class, 'googleCallback']);
+    Route::post('/google/complete-signup', [AuthController::class, 'googleCompleteSignup']);
 });
 
 // -------------------------------------------------------
@@ -76,6 +87,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/bookings/my', [BookingController::class, 'myBookings']);
 
         Route::post('/reviews', [ReviewController::class, 'store']);
+
+        // Tenant Profile & Property History
+        Route::prefix('tenant')->group(function () {
+            Route::get('/profile',                          [TenantProfileController::class, 'show']);
+            Route::put('/profile',                          [TenantProfileController::class, 'update']);
+            Route::post('/profile/avatar',                  [TenantProfileController::class, 'uploadAvatar']);
+            Route::get('/profile/history',                  [TenantProfileController::class, 'propertyHistory']);
+            Route::get('/profile/views/recent',             [TenantProfileController::class, 'recentViews']);
+            Route::post('/profile/views/{property}',        [TenantProfileController::class, 'recordView']);
+        });
     });
 
     // --------------- LANDLORD routes --------------------
@@ -88,10 +109,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/properties/{property}/viewings/{viewing}/approve',         [PropertyController::class, 'approveViewing']);
         Route::post('/properties/{property}/viewings/{viewing}/decline',         [PropertyController::class, 'declineViewing']);
         Route::get('/payments/landlord/summary',                                 [RentPaymentController::class, 'landlordSummary']);
+
+        // Landlord Profile
+        Route::get('/landlord/profile',         [LandlordProfileController::class, 'show']);
+        Route::put('/landlord/profile',         [LandlordProfileController::class, 'update']);
+        Route::post('/landlord/profile/avatar', [LandlordProfileController::class, 'uploadAvatar']);
     });
 
     // --------------- PROVIDER routes --------------------
     Route::middleware('role:provider')->group(function () {
+        Route::get('/provider/profile',             [ProviderProfileController::class, 'show']);
+        Route::put('/provider/profile',             [ProviderProfileController::class, 'update']);
+        Route::post('/provider/profile/avatar',     [ProviderProfileController::class, 'uploadAvatar']);
+
         Route::get('/provider/services',            [ServiceController::class, 'myServices']);
         Route::post('/services',                    [ServiceController::class, 'store']);
         Route::put('/services/{service}',           [ServiceController::class, 'update']);
@@ -117,10 +147,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users',                    [AdminController::class, 'users']);
         Route::post('/users/{user}/suspend',    [AdminController::class, 'suspend']);
         Route::post('/users/{user}/unsuspend',  [AdminController::class, 'unsuspend']);
+        Route::post('/users/{user}/verify',     [AdminController::class, 'verifyProvider']);
 
         Route::get('/properties',               [AdminController::class, 'properties']);
         Route::post('/properties/{property}/approve', [PropertyController::class, 'approve']);
         Route::post('/properties/{property}/reject',  [PropertyController::class, 'reject']);
+
+        Route::get('/services',                 [AdminServiceController::class, 'index']);
+        Route::post('/services/{service}/approve', [AdminServiceController::class, 'approve']);
+        Route::post('/services/{service}/reject',  [AdminServiceController::class, 'reject']);
 
         Route::get('/bookings',                 [AdminController::class, 'bookings']);
         Route::get('/payments',                 [AdminController::class, 'payments']);

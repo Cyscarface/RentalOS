@@ -45,7 +45,10 @@ class ServiceController extends Controller
             'base_price'  => ['required', 'numeric', 'min:1'],
         ]);
 
-        $service = $request->user()->services()->create($data);
+        $service = $request->user()->services()->create(array_merge(
+            $data,
+            ['status' => Service::STATUS_PENDING]
+        ));
 
         AuditLog::record('service.created', $service, ['title' => $service->title]);
 

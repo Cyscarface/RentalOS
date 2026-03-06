@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { propertyApi, paymentApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Building2, CreditCard, Plus } from 'lucide-react';
+import { Building2, CreditCard, Plus, User } from 'lucide-react';
 
 export default function LandlordDashboard() {
     const { user } = useAuth();
@@ -42,7 +42,7 @@ export default function LandlordDashboard() {
                     </div>
                 </div>
 
-                <div className="grid-2">
+                <div className="grid-3">
                     <Link to="/landlord/properties" className="card flex gap-16" style={{ alignItems: 'center' }}>
                         <Building2 size={28} style={{ color: 'var(--teal)' }} />
                         <div><p className="fw-700">My Properties</p><p className="text-muted text-sm">View, edit and manage listings</p></div>
@@ -50,6 +50,10 @@ export default function LandlordDashboard() {
                     <Link to="/landlord/payments" className="card flex gap-16" style={{ alignItems: 'center' }}>
                         <CreditCard size={28} style={{ color: 'var(--teal)' }} />
                         <div><p className="fw-700">Payments</p><p className="text-muted text-sm">KSh {Number(payments?.total_received ?? 0).toLocaleString()} received</p></div>
+                    </Link>
+                    <Link to="/landlord/profile" className="card flex gap-16" style={{ alignItems: 'center' }}>
+                        <User size={28} style={{ color: 'var(--teal)' }} />
+                        <div><p className="fw-700">My Profile</p><p className="text-muted text-sm">Manage preferences & account</p></div>
                     </Link>
                 </div>
 

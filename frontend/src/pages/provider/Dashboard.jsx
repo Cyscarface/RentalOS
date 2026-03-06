@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { serviceApi, bookingApi } from '../../api';
+import { serviceApi, bookingApi, providerProfileApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
-import { Wrench, Calendar, Star } from 'lucide-react';
+import { Wrench, Calendar, Star, User, ShieldCheck } from 'lucide-react';
 
 export default function ProviderDashboard() {
     const { user } = useAuth();
     const { data: services } = useQuery({ queryKey: ['my-services'], queryFn: () => serviceApi.myServices().then(r => r.data) });
     const { data: bookings } = useQuery({ queryKey: ['provider-bookings'], queryFn: () => bookingApi.providerBookings().then(r => r.data) });
+    const { data: profile } = useQuery({ queryKey: ['provider-profile'], queryFn: () => providerProfileApi.get().then(r => r.data) });
 
     const pending = (bookings?.data || []).filter(b => b.status === 'pending').length;
     const accepted = (bookings?.data || []).filter(b => b.status === 'accepted').length;
@@ -16,9 +17,23 @@ export default function ProviderDashboard() {
     return (
         <div className="page">
             <div className="container">
-                <div className="page-header">
-                    <h1>Provider Dashboard</h1>
-                    <p>Manage your services and incoming bookings</p>
+                <div className="page-header flex-between mb-24">
+                    <div>
+                        <h1 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            Provider Dashboard
+                            {profile?.is_verified && <ShieldCheck size={24} color="var(--teal)" title="Verified Professional" />}
+                        </h1>
+                        <p>Manage your services and incoming bookings</p>
+                    </div>
+                    {profile && (
+                        <div className="card" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface-2)' }}>
+                            <div className="fw-700 text-lg">{profile?.rating ? Number(profile.rating).toFixed(1) : 'New'}</div>
+                            <div style={{ display: 'flex', color: 'var(--yellow)' }}>
+                                {[1, 2, 3, 4, 5].map(i => <Star key={i} size={14} fill={profile?.rating >= i ? 'currentColor' : 'none'} color={profile?.rating >= i ? 'currentColor' : 'var(--border)'} />)}
+                            </div>
+                            <div className="text-xs text-muted">Reputation</div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="kpi-grid">
@@ -41,7 +56,7 @@ export default function ProviderDashboard() {
                     </div>
                 </div>
 
-                <div className="grid-2 mb-24">
+                <div className="grid-3 mb-24">
                     <Link to="/provider/services" className="card flex gap-16" style={{ alignItems: 'center' }}>
                         <Wrench size={28} style={{ color: 'var(--teal)' }} />
                         <div><p className="fw-700">My Services</p><p className="text-muted text-sm">{services?.length ?? 0} listed</p></div>
@@ -49,6 +64,10 @@ export default function ProviderDashboard() {
                     <Link to="/provider/bookings" className="card flex gap-16" style={{ alignItems: 'center' }}>
                         <Calendar size={28} style={{ color: 'var(--teal)' }} />
                         <div><p className="fw-700">Bookings</p><p className="text-muted text-sm">{pending} pending action</p></div>
+                    </Link>
+                    <Link to="/provider/profile" className="card flex gap-16" style={{ alignItems: 'center' }}>
+                        <User size={28} style={{ color: 'var(--teal)' }} />
+                        <div><p className="fw-700">My Profile</p><p className="text-muted text-sm">Update identity</p></div>
                     </Link>
                 </div>
 

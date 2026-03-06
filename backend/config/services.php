@@ -44,4 +44,12 @@ return [
         'callback_url' => env('MPESA_CALLBACK_URL'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        // In a real setup, redirect should match the frontend deployment or backend if handling redirect natively.
+        // We'll define a default assuming frontend runs on 5173 or we can use env.
+        'redirect' => env('GOOGLE_REDIRECT_URI', 'http://localhost:5173/auth/google/callback'),
+    ],
+
 ];

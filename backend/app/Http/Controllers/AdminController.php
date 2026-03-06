@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\RentPayment;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,12 +26,18 @@ class AdminController extends Controller
                 'landlords' => User::where('role', User::ROLE_LANDLORD)->count(),
                 'providers' => User::where('role', User::ROLE_PROVIDER)->count(),
                 'suspended' => User::where('is_suspended', true)->count(),
+                'unverified_providers' => User::where('role', User::ROLE_PROVIDER)->where('is_verified', false)->count(),
             ],
             'properties' => [
                 'total'   => Property::count(),
                 'pending' => Property::where('status', Property::STATUS_PENDING)->count(),
                 'active'  => Property::where('status', Property::STATUS_ACTIVE)->count(),
                 'rejected' => Property::where('status', Property::STATUS_REJECTED)->count(),
+            ],
+            'services' => [
+                'total'   => Service::count(),
+                'pending' => Service::where('status', Service::STATUS_PENDING)->count(),
+                'active'  => Service::where('status', Service::STATUS_ACTIVE)->count(),
             ],
             'payments' => [
                 'total_completed' => RentPayment::where('status', RentPayment::STATUS_COMPLETED)->count(),
@@ -91,6 +98,22 @@ class AdminController extends Controller
         AuditLog::record('admin.user_unsuspended', $user, [], $request->user()->id);
 
         return response()->json(['message' => "User {$user->name} has been reinstated."]);
+    }
+
+    // -------------------------------------------------------
+    // POST /api/admin/users/{id}/verify  (admin)
+    // -------------------------------------------------------
+    public function verifyProvider(Request $request, User $user): JsonResponse
+    {
+        if ($user->role !== User::ROLE_PROVIDER) {
+            return response()->json(['message' => 'Only providers can be verified.'], 400);
+        }
+
+        $user->update(['is_verified' => true]);
+
+        AuditLog::record('admin.provider_verified', $user, [], $request->user()->id);
+
+        return response()->json(['message' => "Provider {$user->name} has been verified!"]);
     }
 
     // -------------------------------------------------------

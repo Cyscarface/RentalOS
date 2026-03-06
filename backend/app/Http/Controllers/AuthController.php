@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -157,6 +158,167 @@ class AuthController extends Controller
     }
 
     // -------------------------------------------------------
+    // POST /api/auth/forgot-password
+    // Sends a password-reset OTP to the user's email.
+    // Always returns success to prevent email enumeration.
+    // -------------------------------------------------------
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user && !$user->is_suspended) {
+            $otp = $this->otpService->generate($user);
+            \Log::info("[PasswordReset] OTP for {$user->email}: {$otp}");
+            AuditLog::record('auth.password_reset_requested', $user, ['ip' => $request->ip()]);
+
+            return $this->success(
+                ['user_id' => $user->id],
+                'If that email is registered, a reset code has been sent.'
+            );
+        }
+
+        // Generic response for unknown email (prevents enumeration)
+        return $this->success(
+            null,
+            'If that email is registered, a reset code has been sent.'
+        );
+    }
+
+    // -------------------------------------------------------
+    // POST /api/auth/reset-password
+    // Verifies OTP and sets a new password.
+    // -------------------------------------------------------
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'user_id'              => ['required', 'integer', 'exists:users,id'],
+            'otp'                  => ['required', 'string', 'size:6'],
+            'password'             => ['required', 'string', 'min:8', 'confirmed'],
+            'password_confirmation' => ['required', 'string'],
+        ]);
+
+        $user = User::findOrFail($data['user_id']);
+
+        if (! $this->otpService->verify($user, $data['otp'])) {
+            return $this->error('The OTP is invalid or has expired.', null, 422);
+        }
+
+        // Update password and revoke all active tokens
+        $user->update(['password' => $data['password']]);
+        $user->tokens()->delete();
+
+        AuditLog::record('auth.password_reset', $user, ['ip' => $request->ip()]);
+
+        return $this->success(null, 'Password reset successfully. Please log in with your new password.');
+    }
+
+    // -------------------------------------------------------
+    // GET /api/auth/google/redirect
+    // -------------------------------------------------------
+    public function googleRedirect(): JsonResponse
+    {
+        return $this->success([
+            'url' => Socialite::driver('google')->stateless()->redirect()->getTargetUrl()
+        ]);
+    }
+
+    // -------------------------------------------------------
+    // POST /api/auth/google/callback
+    // -------------------------------------------------------
+    public function googleCallback(Request $request): JsonResponse
+    {
+        try {
+            if ($request->has('token')) {
+                $googleUser = Socialite::driver('google')->stateless()->userFromToken($request->token);
+            } else {
+                $googleUser = Socialite::driver('google')->stateless()->user();
+            }
+            
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if ($user) {
+                if (!$user->google_id) {
+                    $user->update([
+                        'google_id' => $googleUser->getId(),
+                        'avatar_url' => $user->avatar_url ?? $googleUser->getAvatar(),
+                    ]);
+                }
+                
+                if ($user->is_suspended) {
+                    return $this->forbidden('Your account has been suspended.');
+                }
+                
+                $user->tokens()->delete();
+                $token = $user->createToken('auth_token')->plainTextToken;
+                AuditLog::record('auth.login', $user, ['ip' => $request->ip(), 'provider' => 'google']);
+                
+                return $this->success([
+                    'access_token' => $token,
+                    'token_type'   => 'Bearer',
+                    'user'         => $this->userResponse($user),
+                ], 'Login successful.');
+            }
+
+            // User does not exist, return requires_completion
+            return $this->success([
+                'requires_completion' => true,
+                'google_user' => [
+                    'email' => $googleUser->getEmail(),
+                    'name' => $googleUser->getName(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar_url' => $googleUser->getAvatar(),
+                ]
+            ], 'Additional details required to complete registration.');
+
+        } catch (\Exception $e) {
+            \Log::error('Google OAuth Error: ' . $e->getMessage());
+            return $this->error('Failed to authenticate with Google.', null, 401);
+        }
+    }
+
+    // -------------------------------------------------------
+    // POST /api/auth/google/complete-signup
+    // -------------------------------------------------------
+    public function googleCompleteSignup(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email', 'unique:users,email'],
+            'name' => ['required', 'string'],
+            'google_id' => ['required', 'string', 'unique:users,google_id'],
+            'avatar_url' => ['nullable', 'string'],
+            'role' => ['required', 'in:tenant,landlord,provider'],
+            'phone' => ['required', 'string', 'regex:/^(\+?254|0)[17]\d{8}$/'],
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'google_id' => $data['google_id'],
+            'avatar_url' => $data['avatar_url'] ?? null,
+            'role' => $data['role'],
+            'phone' => $data['phone'],
+            'password' => null, // Optional via migration
+        ]);
+        
+        // Auto verify email since Google verified it
+        $user->markEmailAsVerified();
+
+        AuditLog::record('auth.register', $user, ['role' => $user->role, 'provider' => 'google']);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->success([
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
+            'user'         => $this->userResponse($user),
+        ], 'Registration completed successfully.');
+    }
+
+    // -------------------------------------------------------
     // Shared user response shape
     // -------------------------------------------------------
     private function userResponse(User $user): array
@@ -167,6 +329,7 @@ class AuthController extends Controller
             'email'             => $user->email,
             'phone'             => $user->phone,
             'role'              => $user->role,
+            'avatar'            => $user->avatar ? asset('storage/' . $user->avatar) : null,
             'email_verified_at' => $user->email_verified_at,
             'is_suspended'      => $user->is_suspended,
         ];

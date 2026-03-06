@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '../../api';
 import toast from 'react-hot-toast';
-import { Search, UserX, UserCheck } from 'lucide-react';
+import { Search, UserX, UserCheck, ShieldCheck } from 'lucide-react';
 
 export default function AdminUsers() {
     const qc = useQueryClient();
@@ -16,11 +16,12 @@ export default function AdminUsers() {
 
     const suspend = async (id) => { await adminApi.suspend(id); toast.success('User suspended.'); qc.invalidateQueries(['admin-users']); };
     const unsuspend = async (id) => { await adminApi.unsuspend(id); toast.success('User unsuspended.'); qc.invalidateQueries(['admin-users']); };
+    const verify = async (id) => { await adminApi.verify(id); toast.success('Provider verified!'); qc.invalidateQueries(['admin-users']); };
 
     return (
         <div className="page">
             <div className="container">
-                <div className="page-header"><h1>Users</h1><p>Manage platform users</p></div>
+                <div className="page-header"><h1>Users</h1><p>Manage platform users and verifications</p></div>
 
                 {/* Filters */}
                 <div className="card card-sm mb-16 flex gap-12" style={{ flexWrap: 'wrap' }}>
@@ -43,22 +44,37 @@ export default function AdminUsers() {
                         ? <div className="loading-center"><span className="spinner" /></div>
                         : <div className="table-wrap">
                             <table>
-                                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr></thead>
+                                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
                                 <tbody>
                                     {data?.data?.map(u => (
                                         <tr key={u.id}>
-                                            <td className="fw-600">{u.name}</td>
+                                            <td className="fw-600">
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    {u.name}
+                                                    {u.role === 'provider' && u.is_verified && <ShieldCheck size={14} color="#3182ce" title="Verified Professional" />}
+                                                </div>
+                                            </td>
                                             <td className="text-muted text-sm">{u.email}</td>
                                             <td className="text-muted text-sm">{u.phone}</td>
                                             <td><span className={`badge badge-${u.role === 'admin' ? 'red' : u.role === 'landlord' ? 'teal' : u.role === 'provider' ? 'yellow' : 'blue'}`}>{u.role}</span></td>
                                             <td><span className={`badge badge-${u.is_suspended ? 'red' : 'green'}`}>{u.is_suspended ? 'Suspended' : 'Active'}</span></td>
                                             <td className="text-sm text-muted">{new Date(u.created_at).toLocaleDateString()}</td>
                                             <td>
-                                                {u.role !== 'admin' && (
-                                                    u.is_suspended
-                                                        ? <button className="btn btn-primary btn-sm" onClick={() => unsuspend(u.id)}><UserCheck size={13} /> Restore</button>
-                                                        : <button className="btn btn-danger  btn-sm" onClick={() => suspend(u.id)}><UserX size={13} /> Suspend</button>
-                                                )}
+                                                <div style={{ display: 'flex', gap: 8 }}>
+                                                    {/* Verification Button for Unverified Providers */}
+                                                    {u.role === 'provider' && !u.is_verified && !u.is_suspended && (
+                                                        <button className="btn btn-outline btn-sm" onClick={() => verify(u.id)} style={{ color: '#3182ce', borderColor: '#3182ce' }}>
+                                                            <ShieldCheck size={13} /> Verify
+                                                        </button>
+                                                    )}
+
+                                                    {/* Suspend / Unsuspend */}
+                                                    {u.role !== 'admin' && (
+                                                        u.is_suspended
+                                                            ? <button className="btn btn-primary btn-sm" onClick={() => unsuspend(u.id)}><UserCheck size={13} /> Restore</button>
+                                                            : <button className="btn btn-danger btn-sm" onClick={() => suspend(u.id)}><UserX size={13} /> Suspend</button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

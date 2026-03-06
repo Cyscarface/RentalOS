@@ -14,9 +14,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Global 401 handler → redirect to login
+// Global response unwrapper and 401 handler
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // Unwrap the backend ApiResponse { success, message, data, errors }
+    if (res.data && res.data.success === true && res.data.data !== undefined) {
+      res.data = res.data.data;
+    }
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('token');
@@ -37,7 +43,12 @@ export const authApi = {
   verifyOtp: (data) => api.post('/auth/verify-otp', data),
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
+  googleCallback: (data) => api.post('/auth/google/callback', data),
+  googleCompleteSignup: (data) => api.post('/auth/google/complete-signup', data),
 };
+
 
 /* ── Properties ─────────────────────────────────────── */
 export const propertyApi = {
@@ -99,10 +110,14 @@ export const adminApi = {
   users: (params) => api.get('/admin/users', { params }),
   suspend: (id) => api.post(`/admin/users/${id}/suspend`),
   unsuspend: (id) => api.post(`/admin/users/${id}/unsuspend`),
+  verify: (id) => api.post(`/admin/users/${id}/verify`),
   properties: (params) => api.get('/admin/properties', { params }),
   bookings: () => api.get('/admin/bookings'),
   payments: () => api.get('/admin/payments'),
   revenue: () => api.get('/admin/revenue'),
+  getServices: (params) => api.get('/admin/services', { params }),
+  approveService: (id) => api.post(`/admin/services/${id}/approve`),
+  rejectService: (id) => api.post(`/admin/services/${id}/reject`),
 };
 
 /* ── Notifications ──────────────────────────────────── */
@@ -113,3 +128,28 @@ export const notificationApi = {
   markAllRead: () => api.post('/notifications/read-all'),
 };
 
+
+
+/* -- Tenant Profile & History ------------------- */
+export const tenantProfileApi = {
+  get: () => api.get('/tenant/profile'),
+  update: (data) => api.put('/tenant/profile', data),
+  uploadAvatar: (form) => api.post('/tenant/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  history: (page) => api.get('/tenant/profile/history', { params: { page } }),
+  recentViews: () => api.get('/tenant/profile/views/recent'),
+  recordView: (id) => api.post(`/tenant/profile/views/${id}`),
+};
+
+/* -- Landlord Profile --------------------------- */
+export const landlordProfileApi = {
+  get: () => api.get('/landlord/profile'),
+  update: (data) => api.put('/landlord/profile', data),
+  uploadAvatar: (form) => api.post('/landlord/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+};
+
+/* -- Provider Profile --------------------------- */
+export const providerProfileApi = {
+  get: () => api.get('/provider/profile'),
+  update: (data) => api.put('/provider/profile', data),
+  uploadAvatar: (form) => api.post('/provider/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+};

@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { propertyApi } from '../api';
+import { propertyApi, tenantProfileApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { MapPin, Bed, DollarSign, Phone, Eye } from 'lucide-react';
@@ -13,6 +14,13 @@ export default function PropertyDetail() {
         queryKey: ['property', id],
         queryFn: () => propertyApi.show(id).then(r => r.data),
     });
+
+    // Silently record view for tenants (deduped server-side within 1 hour)
+    useEffect(() => {
+        if (user?.role === 'tenant' && id) {
+            tenantProfileApi.recordView(id).catch(() => { }); // fire-and-forget
+        }
+    }, [id, user?.role]);
 
     const requestViewing = async () => {
         if (!user) { toast.error('Please login to request a viewing.'); return; }

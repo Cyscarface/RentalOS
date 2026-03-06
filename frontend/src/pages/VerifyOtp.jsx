@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Mail } from 'lucide-react';
+import Logo from '../components/Logo';
 import './Auth.css';
 
 export default function VerifyOtp() {
@@ -72,9 +73,7 @@ export default function VerifyOtp() {
         <div className="auth-page">
             <div className="auth-card">
                 <div className="auth-header">
-                    <div className="auth-logo" style={{ background: 'rgba(0,212,170,0.15)', color: 'var(--teal)' }}>
-                        <ShieldCheck size={24} />
-                    </div>
+                    <Logo size={56} style={{ marginBottom: 16, filter: 'drop-shadow(0 4px 16px rgba(102,252,241,0.2))' }} />
                     <h1 className="auth-title">Verify your email</h1>
                     <p className="auth-subtitle">Enter the 6-digit code sent to your email</p>
                 </div>

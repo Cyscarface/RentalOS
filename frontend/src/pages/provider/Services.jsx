@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { serviceApi } from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit } from 'lucide-react';
+import { Plus, Edit, ShieldCheck } from 'lucide-react';
 
 const CATEGORIES = ['plumbing', 'electrical', 'cleaning', 'painting', 'carpentry', 'security', 'gardening'];
 
@@ -38,6 +38,13 @@ export default function ProviderServices() {
                 <div className="page-header flex-between">
                     <div><h1>My Services</h1><p>Manage the services you offer</p></div>
                     <button className="btn btn-primary" onClick={() => setShowModal(true)}><Plus size={15} /> Add Service</button>
+                </div>
+
+                <div className="card mb-24" style={{ background: 'rgba(56, 178, 172, 0.05)', border: '1px solid rgba(56, 178, 172, 0.2)', padding: '12px 16px' }}>
+                    <p className="text-sm fw-600" style={{ color: 'var(--teal)', margin: 0 }}>
+                        <ShieldCheck size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: 6 }} />
+                        Quality Control: All newly created services require admin approval before they become visible to clients.
+                    </p>
                 </div>
 
                 {/* Modal */}
@@ -79,18 +86,18 @@ export default function ProviderServices() {
                 <div className="card">
                     {isLoading
                         ? <div className="loading-center"><span className="spinner" /></div>
-                        : data?.length === 0
+                        : data?.data?.length === 0
                             ? <p className="text-muted">No services yet. Add your first service!</p>
                             : <div className="table-wrap">
                                 <table>
                                     <thead><tr><th>Title</th><th>Category</th><th>Base Price</th><th>Status</th></tr></thead>
                                     <tbody>
-                                        {data?.map(s => (
+                                        {data?.data?.map(s => (
                                             <tr key={s.id}>
                                                 <td className="fw-600">{s.title}</td>
                                                 <td><span className="badge badge-teal" style={{ textTransform: 'capitalize' }}>{s.category}</span></td>
                                                 <td className="fw-600" style={{ color: 'var(--teal)' }}>KSh {Number(s.base_price).toLocaleString()}</td>
-                                                <td><span className={`badge badge-${s.status === 'active' ? 'green' : 'gray'}`}>{s.status}</span></td>
+                                                <td><span className={`badge badge-${s.status === 'active' ? 'green' : s.status === 'pending' ? 'yellow' : 'gray'}`}>{s.status}</span></td>
                                             </tr>
                                         ))}
                                     </tbody>

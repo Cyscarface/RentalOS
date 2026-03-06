@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { LogOut, Home, Building2, Wrench, Calendar, MessageSquare, CreditCard, Shield, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import NotificationBell from './NotificationBell';
+import Logo from './Logo';
 import './Navbar.css';
 
 const NAV_LINKS = {
@@ -49,8 +50,8 @@ export default function Navbar() {
         <nav className="navbar">
             <div className="container navbar-inner">
                 {/* Logo */}
-                <Link to={user ? `/${user.role}` : '/'} className="navbar-logo">
-                    <span className="logo-icon">R</span>
+                <Link to={user ? `/${user.role}` : '/'} className="navbar-logo" style={{ gap: 12 }}>
+                    <Logo size={36} />
                     <span>Rental<span className="logo-accent">OS</span></span>
                 </Link>
 
@@ -75,7 +76,11 @@ export default function Navbar() {
                     {user ? (
                         <>
                             <div className="navbar-user">
-                                <span className="user-avatar">{user.name?.[0]?.toUpperCase()}</span>
+                                {user.avatar ? (
+                                    <img src={user.avatar} alt="Avatar" className="user-avatar" style={{ objectFit: 'cover' }} />
+                                ) : (
+                                    <span className="user-avatar">{user.name?.[0]?.toUpperCase()}</span>
+                                )}
                                 <div className="user-info hide-mobile">
                                     <span className="user-name">{user.name}</span>
                                     <span className="user-role">{user.role}</span>

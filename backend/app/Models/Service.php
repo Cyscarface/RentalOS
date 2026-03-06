@@ -12,7 +12,9 @@ class Service extends Model
     use HasFactory;
 
     // Status constants
+    const STATUS_PENDING  = 'pending';
     const STATUS_ACTIVE   = 'active';
+    const STATUS_REJECTED = 'rejected';
     const STATUS_INACTIVE = 'inactive';
 
     protected $fillable = [
