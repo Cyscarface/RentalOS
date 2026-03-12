@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Building2, Wrench, Calendar, MessageSquare, CreditCard, Shield, Menu, X } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { LogOut, Home, Building2, Wrench, Calendar, MessageSquare, CreditCard, Shield, Menu, X, Sun, Moon } from 'lucide-react';
 import { useState } from 'react';
 import NotificationBell from './NotificationBell';
 import Logo from './Logo';
@@ -35,6 +36,7 @@ const NAV_LINKS = {
 
 export default function Navbar() {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
     const [open, setOpen] = useState(false);
@@ -73,6 +75,16 @@ export default function Navbar() {
 
                 {/* Right side */}
                 <div className="navbar-right">
+                    {/* Theme toggle — always visible */}
+                    <button
+                        className="theme-toggle"
+                        onClick={toggleTheme}
+                        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                        title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                    >
+                        {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+                    </button>
+
                     {user ? (
                         <>
                             <div className="navbar-user">

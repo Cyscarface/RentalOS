@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../api';
 import toast from 'react-hot-toast';
-import { Mail, ArrowLeft, KeyRound } from 'lucide-react';
+import { Mail, ArrowLeft, KeyRound, CheckCircle2, ArrowRight } from 'lucide-react';
 import Logo from '../components/Logo';
 import './Auth.css';
 

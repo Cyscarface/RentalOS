@@ -240,7 +240,7 @@ class TenantProfileController extends Controller
             'estate'      => $property->estate,
             'bedrooms'    => $property->bedrooms,
             'rent_amount' => $property->rent_amount,
-            'image_url'   => $primary ? Storage::disk('public')->url($primary->path) : null,
+            'image_url'   => $primary ? $primary->url : null,
         ];
     }
 

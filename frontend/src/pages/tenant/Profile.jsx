@@ -131,17 +131,29 @@ export default function TenantProfile() {
 
     const avatarMutation = useMutation({
         mutationFn: (formData) => tenantProfileApi.uploadAvatar(formData),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ['tenant-profile'] });
             refreshUser(); // refresh the auth context so navbar picks up any changes
-            toast.success('Avatar updated!');
+            toast.success(res.data?.message || 'Avatar updated successfully!');
+            if (fileRef.current) fileRef.current.value = '';
         },
-        onError: () => toast.error('Avatar upload failed'),
+        onError: (err) => {
+            toast.error(err.response?.data?.message || 'Avatar upload failed');
+            if (fileRef.current) fileRef.current.value = '';
+        },
     });
 
     const handleAvatarChange = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        
+        // Basic frontend validation
+        if (file.size > 2 * 1024 * 1024) {
+            toast.error('Image must be less than 2MB');
+            e.target.value = '';
+            return;
+        }
+        
         const fd = new FormData();
         fd.append('avatar', file);
         avatarMutation.mutate(fd);
@@ -184,16 +196,39 @@ export default function TenantProfile() {
                             {/* Avatar */}
                             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
                                 {avatarUrl
-                                    ? <img src={avatarUrl} alt="Avatar" style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--teal)', display: 'block' }} />
-                                    : <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'var(--surface-2)', border: '3px solid var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={40} color="var(--teal)" /></div>
+                                    ? <img src={avatarUrl} alt="Avatar" style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--border)', display: 'block' }} />
+                                    : <div style={{ 
+                                        width: 96, height: 96, borderRadius: '50%', 
+                                        background: 'var(--surface)', 
+                                        border: '3px solid var(--border)', 
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.1)'
+                                    }}>
+                                        <User size={40} color="var(--text-muted)" />
+                                    </div>
                                 }
                                 <button
                                     onClick={() => fileRef.current?.click()}
                                     disabled={avatarMutation.isPending}
-                                    style={{ position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--navy)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                    style={{ 
+                                        position: 'absolute', 
+                                        bottom: 0, 
+                                        right: 0, 
+                                        width: 32, 
+                                        height: 32, 
+                                        borderRadius: '50%', 
+                                        background: 'var(--teal)', 
+                                        border: '2px solid var(--surface)', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        cursor: 'pointer',
+                                        zIndex: 10,
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                                    }}
                                     title="Change avatar"
                                 >
-                                    {avatarMutation.isPending ? <div className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> : <Camera size={13} color="var(--navy)" />}
+                                    {avatarMutation.isPending ? <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> : <Camera size={16} color="var(--surface)" />}
                                 </button>
                                 <input ref={fileRef} type="file" accept="image/jpg,image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleAvatarChange} />
                             </div>

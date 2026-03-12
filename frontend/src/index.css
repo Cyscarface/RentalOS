@@ -1,47 +1,82 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-/* ── "Midnight Aurora" Design Tokens ───────────────────── */
+/* ── Shared Geometry & Animation Tokens ────────────────── */
 :root {
-  /* Color Palette */
-  --bg: #0B0C10;
-  /* Deep Obsidian */
-  --surface: #1F2833;
-  /* Slate Blue-Gray */
-  --surface-2: rgba(31, 40, 51, 0.6);
-  --primary: #66FCF1;
-  /* Energetic Cyan */
-  --primary-dark: #45A29E;
-  /* Muted Teal */
-  --primary-glow: rgba(102, 252, 241, 0.2);
-  --secondary: #45A29E;
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --transition: 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
 
+/* ── "Pure Obsidian" Dark Theme ───────────────────────── */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg: #000000;
+  --surface: #0d0d0d;
+  --surface-2: rgba(13, 13, 13, 0.6);
+
+  /* Accent — Steel Blue from user palette */
+  --primary: #3492b8;
+  --primary-dark: #0376a5;
+  --primary-glow: rgba(52, 146, 184, 0.18);
+  --secondary: #0376a5;
+
+  /* Semantic */
   --gold: #F5A623;
   --danger: #fc8181;
   --danger-glow: rgba(252, 129, 129, 0.15);
   --success: #68d391;
   --success-glow: rgba(104, 211, 145, 0.15);
 
-  /* Borders & Text */
-  --border: rgba(102, 252, 241, 0.15);
-  --border-2: rgba(197, 198, 199, 0.08);
-  --text: #C5C6C7;
-  /* Soft Silver */
-  --text-bright: #FFFFFF;
-  /* Pure White Headers */
-  --text-muted: #8fa3c8;
-  --text-dim: #4a5e8a;
+  /* Borders */
+  --border: rgba(52, 146, 184, 0.18);
+  --border-2: rgba(255, 255, 255, 0.07);
 
-  /* Geometry */
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  /* Text — from user palette */
+  --text: #cac7c5;
+  --text-bright: #ffffff;
+  --text-muted: #8c8d88;
+  --text-dim: #494f3b;
 
   /* Depth */
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
   --shadow-glow: 0 0 24px var(--primary-glow);
+}
 
-  --transition: 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* ── "Stone & Steel" Light Theme ──────────────────────── */
+[data-theme="light"] {
+  /* Backgrounds — warm stone from user palette */
+  --bg: #f0edeb;
+  --surface: #ffffff;
+  --surface-2: rgba(255, 255, 255, 0.75);
+
+  /* Accent — deep steel blues from user palette */
+  --primary: #0376a5;
+  --primary-dark: #144e6e;
+  --primary-glow: rgba(3, 118, 165, 0.12);
+  --secondary: #3492b8;
+
+  /* Semantic */
+  --gold: #c07a13;
+  --danger: #d9534f;
+  --danger-glow: rgba(217, 83, 79, 0.12);
+  --success: #2e7d54;
+  --success-glow: rgba(46, 125, 84, 0.12);
+
+  /* Borders */
+  --border: rgba(3, 118, 165, 0.2);
+  --border-2: rgba(73, 79, 59, 0.12);
+
+  /* Text — from user palette */
+  --text: #494f3b;
+  --text-bright: #144e6e;
+  --text-muted: #8c8d88;
+  --text-dim: #cac7c5;
+
+  /* Depth */
+  --shadow: 0 8px 32px rgba(20, 78, 110, 0.10);
+  --shadow-glow: 0 0 24px var(--primary-glow);
 }
 
 /* ── Reset & Typography ────────────────────────────────── */
@@ -55,13 +90,15 @@
 
 html {
   scroll-behavior: smooth;
+  /* Smooth color transition when toggling theme */
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--bg);
-  background-image: radial-gradient(circle at 15% 50%, rgba(69, 162, 158, 0.04), transparent 50%),
-    radial-gradient(circle at 85% 30%, rgba(102, 252, 241, 0.04), transparent 50%);
+  background-image: radial-gradient(circle at 15% 50%, var(--primary-glow), transparent 50%),
+    radial-gradient(circle at 85% 30%, var(--primary-glow), transparent 50%);
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
@@ -754,7 +791,7 @@ tr:hover td {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(69, 162, 158, 0.4);
+  background: rgba(52, 146, 184, 0.35);
   border-radius: 4px;
 }
 

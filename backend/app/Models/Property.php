@@ -71,4 +71,20 @@ class Property extends Model
     {
         return $this->hasMany(RentPayment::class);
     }
+
+    // -------------------------------------------------------
+    // Accessors
+    // -------------------------------------------------------
+
+    /** 
+     * Get the primary image URL directly on the property object.
+     * Helpful for frontend list views that expect property.image_url
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        $primary = $this->images->firstWhere('is_primary', true) ?? $this->images->first();
+        return $primary ? $primary->url : null;
+    }
+
+    protected $appends = ['image_url'];
 }

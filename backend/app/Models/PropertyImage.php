@@ -40,10 +40,11 @@ class PropertyImage extends Model
     /** Returns a full public URL for the image */
     public function getUrlAttribute(): string
     {
-        if (str_starts_with($this->path, 'http')) {
-            return $this->path;
+        $path = trim($this->path);
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
         }
-        return Storage::url($this->path);
+        return Storage::url($path);
     }
 
     protected $appends = ['url'];
