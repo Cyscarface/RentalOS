@@ -32,7 +32,6 @@ class User extends Authenticatable
         'bio',
         'preferences',
         'google_id',
-        'avatar_url',
     ];
 
     protected $hidden = [

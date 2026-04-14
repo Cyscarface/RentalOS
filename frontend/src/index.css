@@ -452,6 +452,28 @@ textarea {
   text-shadow: 0 0 20px var(--primary-glow);
 }
 
+/* KPI Cards Light Mode overrides */
+[data-theme="light"] .kpi-card {
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .kpi-card:nth-child(4n+1) { background: #2594F5; }
+[data-theme="light"] .kpi-card:nth-child(4n+2) { background: #F54024; }
+[data-theme="light"] .kpi-card:nth-child(4n+3) { background: #F5CB24; }
+[data-theme="light"] .kpi-card:nth-child(4n+4) { background: #2594F5; }
+
+[data-theme="light"] .kpi-card .kpi-label,
+[data-theme="light"] .kpi-card .kpi-meta {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .kpi-card .kpi-value,
+[data-theme="light"] .kpi-card .kpi-value.teal {
+  color: #ffffff;
+  text-shadow: none;
+}
+
 /* ── Tables ──────────────────────────────────────────────── */
 .table-wrap {
   overflow-x: auto;

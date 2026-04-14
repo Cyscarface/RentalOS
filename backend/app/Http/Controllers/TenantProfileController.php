@@ -91,19 +91,24 @@ class TenantProfileController extends Controller
         }
 
         $user = $request->user();
-
-        // Delete old avatar if it exists
-        if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
-        }
+        $oldAvatar = $user->avatar;
 
         $path = $request->file('avatar')->store("avatars/{$user->id}", 'public');
 
-        $user->update(['avatar' => $path]);
+        try {
+            $user->update(['avatar' => $path]);
 
-        return $this->success([
-            'avatar_url' => asset('storage/' . $path),
-        ], 'Avatar uploaded successfully.');
+            if ($oldAvatar && Storage::disk('public')->exists($oldAvatar)) {
+                Storage::disk('public')->delete($oldAvatar);
+            }
+
+            return $this->success([
+                'avatar_url' => asset('storage/' . $path),
+            ], 'Avatar uploaded successfully.');
+        } catch (\Exception $e) {
+            Storage::disk('public')->delete($path);
+            return $this->error('Failed to update avatar.', 500);
+        }
     }
 
     // -------------------------------------------------------

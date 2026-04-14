@@ -102,16 +102,23 @@ class ProviderProfileController extends Controller
         }
 
         $user = $request->user();
-
-        if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
-        }
+        $oldAvatar = $user->avatar;
 
         $path = $request->file('avatar')->store("avatars/{$user->id}", 'public');
-        $user->update(['avatar' => $path]);
 
-        return $this->success([
-            'avatar_url' => asset('storage/' . $path),
-        ], 'Avatar uploaded successfully.');
+        try {
+            $user->update(['avatar' => $path]);
+
+            if ($oldAvatar && Storage::disk('public')->exists($oldAvatar)) {
+                Storage::disk('public')->delete($oldAvatar);
+            }
+
+            return $this->success([
+                'avatar_url' => asset('storage/' . $path),
+            ], 'Avatar uploaded successfully.');
+        } catch (\Exception $e) {
+            Storage::disk('public')->delete($path);
+            return $this->error('Failed to update avatar.', 500);
+        }
     }
 }

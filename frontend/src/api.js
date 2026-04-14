@@ -130,11 +130,38 @@ export const notificationApi = {
 
 
 
+const fileApi = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+  withCredentials: true,
+  withXSRFToken: true,
+});
+fileApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+fileApi.interceptors.response.use(
+  (res) => {
+    if (res.data && res.data.success === true && res.data.data !== undefined) {
+      res.data = res.data.data;
+    }
+    return res;
+  },
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
+
 /* -- Tenant Profile & History ------------------- */
 export const tenantProfileApi = {
   get: () => api.get('/tenant/profile'),
   update: (data) => api.put('/tenant/profile', data),
-  uploadAvatar: async (form) => { await authApi.getCsrf(); return api.post('/tenant/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } }); },
+  uploadAvatar: async (form) => fileApi.post('/tenant/profile/avatar', form),
   history: (page) => api.get('/tenant/profile/history', { params: { page } }),
   recentViews: () => api.get('/tenant/profile/views/recent'),
   recordView: (id) => api.post(`/tenant/profile/views/${id}`),
@@ -144,12 +171,13 @@ export const tenantProfileApi = {
 export const landlordProfileApi = {
   get: () => api.get('/landlord/profile'),
   update: (data) => api.put('/landlord/profile', data),
-  uploadAvatar: (form) => api.post('/landlord/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadAvatar: (form) => fileApi.post('/landlord/profile/avatar', form),
 };
 
 /* -- Provider Profile --------------------------- */
 export const providerProfileApi = {
   get: () => api.get('/provider/profile'),
   update: (data) => api.put('/provider/profile', data),
-  uploadAvatar: (form) => api.post('/provider/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadAvatar: (form) => fileApi.post('/provider/profile/avatar', form),
 };
+

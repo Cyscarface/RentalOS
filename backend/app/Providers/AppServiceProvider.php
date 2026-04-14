@@ -29,5 +29,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+        \Laravel\Mcp\Facades\Mcp::local('rentalos', \App\Mcp\Servers\RentalOs::class);
     }
 }
